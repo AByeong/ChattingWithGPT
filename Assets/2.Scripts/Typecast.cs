@@ -18,7 +18,6 @@ public class SpeakRequestData
 
 public class Typecast : MonoBehaviour
 {
-    private const string API_KEY = "__pltLGa6E5TZkrb5Sj8GK2cbrnK63jBdG3aLSdn8Scw9";
     private const string VOICE_ID = "622964d6255364be41659078";
 
     public Task<AudioClip> StartSpeechAsync(string text)
@@ -47,7 +46,7 @@ public class Typecast : MonoBehaviour
             postReq.uploadHandler = new UploadHandlerRaw(System.Text.Encoding.UTF8.GetBytes(postJson));
             postReq.downloadHandler = new DownloadHandlerBuffer();
             postReq.SetRequestHeader("Content-Type", "application/json");
-            postReq.SetRequestHeader("Authorization", $"Bearer {API_KEY}");
+            postReq.SetRequestHeader("Authorization", $"Bearer {EnvironmentInformation.TYPECAST_API_KEY}");
 
             Debug.Log(postJson);
             
@@ -69,7 +68,7 @@ public class Typecast : MonoBehaviour
 
                 using (var getReq = UnityWebRequest.Get(speakUrl))
                 {
-                    getReq.SetRequestHeader("Authorization", $"Bearer {API_KEY}");
+                    getReq.SetRequestHeader("Authorization", $"Bearer {EnvironmentInformation.TYPECAST_API_KEY}");
                     yield return getReq.SendWebRequest();
 
                     if (getReq.result != UnityWebRequest.Result.Success)

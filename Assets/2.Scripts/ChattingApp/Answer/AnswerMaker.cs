@@ -15,7 +15,6 @@ public class AnswerMaker : MonoBehaviour
 
     [Header("기본 세팅")]
     private OpenAIClient _api;
-    private const string OPENAI_KEY = "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";
     private List<Message> _memory = new List<Message>();
 
     [Header("인풋")]
@@ -29,9 +28,12 @@ public class AnswerMaker : MonoBehaviour
     [Header("데이터")]
     public WorldInformationSO WorldInformationSO;
 
+    public event Action OnPromptSend;
+    public event Action OnAnswerGet; 
+    
     private void Awake()
     {
-        _api = new OpenAIClient(OPENAI_KEY);                                   //API 클라이언트 초기화 -> GPT에 접속
+        _api = new OpenAIClient(EnvironmentInformation.GPT_API_KEY);                                   //API 클라이언트 초기화 -> GPT에 접속
         if (Audio == null)
         {
             Audio = GetComponent<AudioSource>();
@@ -61,6 +63,8 @@ public class AnswerMaker : MonoBehaviour
             return;
         }
         
+        
+        OnPromptSend?.Invoke();
         //내가 한 말을 기억한다.
         _memory.Add(new Message(Role.User, prompt));
 
@@ -80,6 +84,7 @@ public class AnswerMaker : MonoBehaviour
         OutputAnswer.CharacterAudioclip = speechClip.Result;
          
          _memory.Add(new Message(Role.Assistant, choice.Message.ToString()));
+         OnAnswerGet?.Invoke();
     }
     
     
