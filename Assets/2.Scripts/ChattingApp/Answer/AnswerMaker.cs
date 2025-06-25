@@ -18,30 +18,32 @@ public class AnswerMaker : MonoBehaviour
     private List<Message> _memory = new List<Message>();
 
     [Header("인풋")]
-    [SerializeField] private AudioSource Audio;
+    [SerializeField] private AudioSource _audio;
     public RawImage CharacterImage;
-    [SerializeField] private Typecast Typecast;
+    [SerializeField] private Typecast _typecast;
     
     [Header("아웃풋")]
-    public Output OutputAnswer = new Output(new AnswerJson("","",""));
+    public Output OutputAnswer = new Output(new AnswerJson("","","","",""));
     
     [Header("데이터")]
     public WorldInformationSO WorldInformationSO;
 
     public event Action OnPromptSend;
-    public event Action OnAnswerGet; 
-    
+    public event Action OnAnswerGet;
+
+    public PlayerStatManager StatManager;
+
     private void Awake()
     {
         _api = new OpenAIClient(EnvironmentInformation.GPT_API_KEY);                                   //API 클라이언트 초기화 -> GPT에 접속
-        if (Audio == null)
+        if (_audio == null)
         {
-            Audio = GetComponent<AudioSource>();
+            _audio = GetComponent<AudioSource>();
         }
 
-        if (Typecast == null)
+        if (_typecast == null)
         {
-            Typecast = GetComponent<Typecast>();
+            _typecast = GetComponent<Typecast>();
         }
     }
 
@@ -52,9 +54,24 @@ public class AnswerMaker : MonoBehaviour
         {
             _memory.AddRange(WorldInformationSO.WorldDescriptionMessages());
         }
+        
+        _memory.Add(new Message(Role.System, "ReplyMessage에는 대답을 넣어줘."));
+        _memory.Add(new Message(Role.System, "ActingMessage에는 지금하고 있는 행동을 넣어줘."));
+        _memory.Add(new Message(Role.System, "ActingMessage에는 특별히 중요한 지시문이 아니라면 그냥 비워줬으면 좋겠어."));
+        _memory.Add(new Message(Role.System, "ActingMessage는 냥으로 끝나지 않았으면 좋겠어."));
+        _memory.Add(new Message(Role.System, "ActingMessage는 뭐뭐하고 있다라는 문장 마무리로 끝났으면 좋겠어."));
+        _memory.Add(new Message(Role.System, "Price에는 지금 플레이어에게 팔려는 포션의 가격이었으면 좋겠어"));
+
+
+        _memory.Add(new Message(Role.System, $"만약 플레이어가 구매를 시도할 때, 플레이어의 재화의 양이 제시된 금액보다 낮으면 Buy에 '실패'이라고 해줘"));
+        _memory.Add(new Message(Role.System, $"만약 플레이어가 구매를 시도할 때, 플레이어의 재화의 양이 제시된 금액보다 높거나 같으면 Buy에 '성공'이라고 해줘"));
+        _memory.Add(new Message(Role.System, $"만약 플레이어가 구매를 시도하지 않는다면 Buy는 빈 문자열을 넣어줘"));
+        _memory.Add(new Message(Role.System, $"Buy에는 내가 말해준 저 세개의 경우 빼고는 어떤 경우도 없었으면 좋겠어"));
+        _memory.Add(new Message(Role.System, "Price 값에는 오직 숫자만 입력해줘. '골드', '원', '돈' 같은 단어 없이 숫자만 넣어줘."));
+
     }
 
-    
+
     //Output을 만든다
     public async Task MakeOutput(string prompt)
     {
@@ -68,6 +85,10 @@ public class AnswerMaker : MonoBehaviour
         //내가 한 말을 기억한다.
         _memory.Add(new Message(Role.User, prompt));
 
+        _memory.Add(new Message(Role.System, $"현재 플레이어가 가진 재화의 양은 {StatManager.MyStat.Gold}야."));
+       
+
+
         ChatRequest chatRequest = new ChatRequest(_memory, Model.GPT4o );   //메세지 보내기
 
         var ( answerJson,  response) = await _api.ChatEndpoint.GetCompletionAsync<AnswerJson>(chatRequest);//답변 받기
@@ -75,7 +96,7 @@ public class AnswerMaker : MonoBehaviour
 
         
         //타입캐스트를 활용하여 오디오를 만든다
-         Task<AudioClip> speechClip = Typecast.StartSpeechAsync(answerJson.ReplyMessage);
+         Task<AudioClip> speechClip = _typecast.StartSpeechAsync(answerJson.ReplyMessage);
          await Task.WhenAll(speechClip);
 
          
@@ -84,7 +105,15 @@ public class AnswerMaker : MonoBehaviour
         OutputAnswer.CharacterAudioclip = speechClip.Result;
          
          _memory.Add(new Message(Role.Assistant, choice.Message.ToString()));
-         OnAnswerGet?.Invoke();
+
+        Debug.Log(answerJson.ToString());
+
+       if (answerJson.Buy == "성공")
+        {
+            StatManager.Purchase(int.Parse(answerJson.Price));
+        }
+
+        OnAnswerGet?.Invoke();
     }
     
     
@@ -100,7 +129,7 @@ public class Output
 
     public Output(AnswerJson characterAnswerJson, AudioClip characterAudioclip = null, Texture characterTextureImage = null)
     {
-        characterAnswerJson = characterAnswerJson;
+        CharacterAnswerJson = characterAnswerJson;
         CharacterAudioclip = characterAudioclip;
         CharacterTextureImage = characterTextureImage;
     }
@@ -117,11 +146,20 @@ public class AnswerJson
     [JsonProperty("ImageDescripton")]
     public string ImageDescripton{get; set;}
 
-    public AnswerJson(string replyMessage, string actingMessage, string imageDescripton)
+
+    [JsonProperty("Price")]
+    public string Price { get; set; }
+
+    [JsonProperty("Buy")]
+    public string Buy { get; set; }
+
+    public AnswerJson(string replyMessage, string actingMessage, string imageDescripton, string price, string buy)
     {
         ReplyMessage = replyMessage;
         ActingMessage = actingMessage;
         ImageDescripton = imageDescripton;
+        Price = price;
+        Buy = buy;
     }
     
 }
