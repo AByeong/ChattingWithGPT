@@ -1,0 +1,147 @@
+{
+  "3": {
+    "inputs": {
+      "seed": 580471409940288,
+      "steps": 30,
+      "cfg": 8,
+      "sampler_name": "dpmpp_2m_sde",
+      "scheduler": "karras",
+      "denoise": 1,
+      "model": [
+        "4",
+        0
+      ],
+      "positive": [
+        "6",
+        0
+      ],
+      "negative": [
+        "7",
+        0
+      ],
+      "latent_image": [
+        "5",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "4": {
+    "inputs": {
+      "ckpt_name": "ghostmix_v20Bakedvae.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "5": {
+    "inputs": {
+      "width": 512,
+      "height": 512,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Empty Latent Image"
+    }
+  },
+  "6": {
+    "inputs": {
+      "text": [
+        "11",
+        0
+      ],
+      "clip": [
+        "4",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "7": {
+    "inputs": {
+      "text": "bad anatomy, extra limbs, extra fingers, missing fingers, deformed hands, low quality, worst quality, blurry, lowres, bad proportions, disfigured, mutated, watermark, logo, cropped, duplicate, poorly drawn face, poorly drawn hands, wrong style, old, adult, male, hat, gloves, mask, cluttered background, cityscape, sci-fi elements\n",
+      "clip": [
+        "4",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "8": {
+    "inputs": {
+      "samples": [
+        "3",
+        0
+      ],
+      "vae": [
+        "4",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "11": {
+    "inputs": {
+      "action": "append",
+      "tidy_tags": "yes",
+      "text_a": [
+        "12",
+        0
+      ],
+      "text_b": [
+        "13",
+        0
+      ],
+      "text_c": ""
+    },
+    "class_type": "StringFunction|pysssss",
+    "_meta": {
+      "title": "String Function 🐍"
+    }
+  },
+  "12": {
+    "inputs": {
+      "value": "masterpiece, best quality, 1girl, solo, anime style, fantasy alchemist catgirl, long silver white hair, fluffy hair, large blue eyes, cat ears, cute face, soft lighting, magical particles, young catgirl, wearing a navy alchemist robe with golden trim and red ribbon, brown leather belt with potion bottles and pouches, holding glowing colorful potions in both hands, serious expression, looking at viewer, standing in a cozy alchemist’s shop filled with glowing bottles, bookshelves, hanging herbs, warm lighting, wooden walls, magical floating particles, rustic fantasy village atmosphere"
+    },
+    "class_type": "easy string",
+    "_meta": {
+      "title": "String"
+    }
+  },
+  "13": {
+    "inputs": {
+      "value": "(upper body), holding red potion"
+    },
+    "class_type": "easy string",
+    "_meta": {
+      "title": "String"
+    }
+  },
+  "14": {
+    "inputs": {
+      "filename_prefix": "ComfyUI/Cat",
+      "images": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  }
+}

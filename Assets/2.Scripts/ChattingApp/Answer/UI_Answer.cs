@@ -28,6 +28,10 @@ public class UI_Answer : MonoBehaviour
     [SerializeField] private float DownDuration = 0.3f;
     [SerializeField] private float UpYPosition = 50f;
 
+
+    [Header("이미지")]
+    [SerializeField] private RawImage Image;
+
     [Header("로딩창")]
     [SerializeField] private GameObject _loadingUI;
     
@@ -51,6 +55,7 @@ public class UI_Answer : MonoBehaviour
 
         AnswerMaker.OnAnswerGet += InputBoxUp;
         AnswerMaker.OnAnswerGet +=() => _loadingUI.SetActive(false);
+        AnswerMaker.OnAnswerGet += SetTexture;
  
     }
 
@@ -174,4 +179,17 @@ public class UI_Answer : MonoBehaviour
         yield return new WaitForEndOfFrame();
         scrollRect.verticalNormalizedPosition = 0f;
     }
+
+
+    public void SetTexture()
+    {
+        Texture texture = AnswerMaker.OutputAnswer.CharacterTextureImage;
+
+        if(texture == null)
+        {
+            return;
+        }
+        Image.texture = texture;
+    }
+
 }

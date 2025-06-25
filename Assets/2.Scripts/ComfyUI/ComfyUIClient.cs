@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
@@ -7,44 +7,44 @@ using Newtonsoft.Json.Linq;
 
 public class ComfyUIClient : MonoBehaviour
 {
-    [Header("¼³Á¤")]
+    [Header("ì„¤ì •")]
     public string comfyUIUrl = "http://localhost:8188";
-    private string workflowFileName = "WorkflowForUnity.json";
-    private string outputFolderPath = @"C:\ComfyUI\ComfyUI_windows_portable_nvidia\ComfyUI_windows_portable\ComfyUI\output";
+    private string workflowFileName = "CatAlchemist.json"; // ì›Œí¬í”Œë¡œìš° íŒŒì¼ ì´ë¦„ ì—…ë°ì´íŠ¸
+    private string outputFolderPath = @"C:\ComfyUI\ComfyUI_windows_portable\ComfyUI\output\ComfyUI"; // ì¶œë ¥ í´ë” ê²½ë¡œ ì—…ë°ì´íŠ¸
 
-    [Header("µğ¹ö±×")]
+    [Header("ë””ë²„ê·¸")]
     public bool enableDebugLogs = true;
 
     /// <summary>
-    /// ÀÌ¹ÌÁö »ı¼ºÇÏ°í ¿Ï·á±îÁö ±â´Ù¸®´Â ¸ŞÀÎ ¸Ş¼­µå
+    /// ì´ë¯¸ì§€ ìƒì„±í•˜ê³  ì™„ë£Œê¹Œì§€ ê¸°ë‹¤ë¦¬ëŠ” ë©”ì¸ ë©”ì„œë“œ
     /// </summary>
     public IEnumerator GenerateImageAndWait(string prompt, System.Action<string> onComplete)
     {
-        if (enableDebugLogs) Debug.Log($"?? ÀÌ¹ÌÁö »ı¼º ½ÃÀÛ: {prompt}");
+        if (enableDebugLogs) Debug.Log($"ğŸ¨ ì´ë¯¸ì§€ ìƒì„± ì‹œì‘: {prompt}");
 
         string promptId = null;
-        // 1. ÀÌ¹ÌÁö »ı¼º ¿äÃ»
+        // 1. ì´ë¯¸ì§€ ìƒì„± ìš”ì²­
         yield return GenerateImageRequest(prompt, (id) => {
             promptId = id;
         });
 
         if (string.IsNullOrEmpty(promptId))
         {
-            Debug.LogError("? ÀÌ¹ÌÁö »ı¼º ¿äÃ» ½ÇÆĞ");
+            Debug.LogError("âŒ ì´ë¯¸ì§€ ìƒì„± ìš”ì²­ ì‹¤íŒ¨");
             onComplete?.Invoke(null);
             yield break;
         }
 
-        // 2. ¿Ï·á±îÁö ±â´Ù¸®±â
+        // 2. ì™„ë£Œê¹Œì§€ ê¸°ë‹¤ë¦¬ê¸°
         yield return WaitForCompletion(promptId, onComplete);
     }
 
     /// <summary>
-    /// ComfyUI¿¡ ÀÌ¹ÌÁö »ı¼º ¿äÃ»
+    /// ComfyUIì— ì´ë¯¸ì§€ ìƒì„± ìš”ì²­
     /// </summary>
     private IEnumerator GenerateImageRequest(string prompt, System.Action<string> onComplete)
     {
-        // ¿öÅ©ÇÃ·Î¿ì ÆÄÀÏ ·Îµå ¹× ¼öÁ¤
+        // ì›Œí¬í”Œë¡œìš° íŒŒì¼ ë¡œë“œ ë° ìˆ˜ì •
         string workflowJson = null;
 
         try
@@ -53,12 +53,12 @@ public class ComfyUIClient : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"? ¿öÅ©ÇÃ·Î¿ì ÁØºñ ½ÇÆĞ: {e.Message}");
+            Debug.LogError($"âŒ ì›Œí¬í”Œë¡œìš° ì¤€ë¹„ ì‹¤íŒ¨: {e.Message}");
             onComplete?.Invoke(null);
             yield break;
         }
 
-        // ComfyUI·Î ¿äÃ» Àü¼Û
+        // ComfyUIë¡œ ìš”ì²­ ì „ì†¡
         using (UnityWebRequest request = new UnityWebRequest(comfyUIUrl + "/prompt", "POST"))
         {
             byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(workflowJson);
@@ -75,25 +75,25 @@ public class ComfyUIClient : MonoBehaviour
                     JObject response = JObject.Parse(request.downloadHandler.text);
                     string promptId = response["prompt_id"]?.ToString();
 
-                    if (enableDebugLogs) Debug.Log($"? ¿äÃ» ¼º°ø - ID: {promptId}");
+                    if (enableDebugLogs) Debug.Log($"âœ… ìš”ì²­ ì„±ê³µ - ID: {promptId}");
                     onComplete?.Invoke(promptId);
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"? ÀÀ´ä ÆÄ½Ì ½ÇÆĞ: {e.Message}");
+                    Debug.LogError($"âŒ ì‘ë‹µ íŒŒì‹± ì‹¤íŒ¨: {e.Message}");
                     onComplete?.Invoke(null);
                 }
             }
             else
             {
-                Debug.LogError($"? ¿äÃ» ½ÇÆĞ: {request.error}\nÀÀ´ä: {request.downloadHandler.text}");
+                Debug.LogError($"âŒ ìš”ì²­ ì‹¤íŒ¨: {request.error}\nì‘ë‹µ: {request.downloadHandler.text}");
                 onComplete?.Invoke(null);
             }
         }
     }
 
     /// <summary>
-    /// ¿öÅ©ÇÃ·Î¿ì JSON ÁØºñ (¾÷µ¥ÀÌÆ®µÈ ¿öÅ©ÇÃ·Î¿ì¿ë)
+    /// ì›Œí¬í”Œë¡œìš° JSON ì¤€ë¹„ (ì—…ë°ì´íŠ¸ëœ ì›Œí¬í”Œë¡œìš°ìš©)
     /// </summary>
     private string PrepareWorkflow(string prompt)
     {
@@ -101,23 +101,23 @@ public class ComfyUIClient : MonoBehaviour
 
         if (!File.Exists(workflowPath))
         {
-            throw new FileNotFoundException($"¿öÅ©ÇÃ·Î¿ì ÆÄÀÏÀÌ ¾ø½À´Ï´Ù: {workflowPath}");
+            throw new FileNotFoundException($"ì›Œí¬í”Œë¡œìš° íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤: {workflowPath}");
         }
 
-        // JSON ·Îµå ¹× ¼öÁ¤
+        // JSON ë¡œë“œ ë° ìˆ˜ì •
         string rawJson = File.ReadAllText(workflowPath);
         JObject workflow = JObject.Parse(rawJson);
 
-        // ÇÁ·ÒÇÁÆ® ¾÷µ¥ÀÌÆ® (³ëµå 4 - ±àÁ¤ ÇÁ·ÒÇÁÆ®)
+        // í”„ë¡¬í”„íŠ¸ ì—…ë°ì´íŠ¸ (ë…¸ë“œ 13 - easy string)
         UpdatePromptInWorkflow(workflow, prompt);
 
-        // ·£´ı ½Ãµå ¼³Á¤ (³ëµå 3 - KSampler)
+        // ëœë¤ ì‹œë“œ ì„¤ì • (ë…¸ë“œ 3 - KSampler)
         UpdateSeedInWorkflow(workflow);
 
-        // ¿öÅ©ÇÃ·Î¿ì À¯È¿¼º °Ë»ç
+        // ì›Œí¬í”Œë¡œìš° ìœ íš¨ì„± ê²€ì‚¬
         ValidateWorkflow(workflow);
 
-        // API ¿äÃ» Çü½ÄÀ¸·Î ·¡ÇÎ
+        // API ìš”ì²­ í˜•ì‹ìœ¼ë¡œ ë˜í•‘
         JObject apiRequest = new JObject
         {
             ["prompt"] = workflow
@@ -125,56 +125,48 @@ public class ComfyUIClient : MonoBehaviour
 
         string jsonResult = apiRequest.ToString();
 
-        // µğ¹ö±×¿ë - ÀüÃ¼ JSON ÆÄÀÏ·Î ÀúÀå
+        // ë””ë²„ê·¸ìš© - ì „ì²´ JSON íŒŒì¼ë¡œ ì €ì¥
         if (enableDebugLogs)
         {
             string debugPath = Path.Combine(Application.persistentDataPath, "debug_workflow.json");
             File.WriteAllText(debugPath, jsonResult);
-            Debug.Log($"?? µğ¹ö±×¿ë ¿öÅ©ÇÃ·Î¿ì ÀúÀåµÊ: {debugPath}");
+            Debug.Log($"ğŸ› ë””ë²„ê·¸ìš© ì›Œí¬í”Œë¡œìš° ì €ì¥ë¨: {debugPath}");
         }
 
         return jsonResult;
     }
 
     /// <summary>
-    /// ¿öÅ©ÇÃ·Î¿ì¿¡¼­ ÇÁ·ÒÇÁÆ® ³ëµå ¾÷µ¥ÀÌÆ® (³ëµå 4 - ±àÁ¤ ÇÁ·ÒÇÁÆ®)
+    /// ì›Œí¬í”Œë¡œìš°ì—ì„œ í”„ë¡¬í”„íŠ¸ ë…¸ë“œ ì—…ë°ì´íŠ¸ (CatAlchemist.jsonì˜ ë…¸ë“œ 13 - easy string)
     /// </summary>
     private void UpdatePromptInWorkflow(JObject workflow, string prompt)
     {
         try
         {
-            // ³ëµå 4 - ±àÁ¤ ÇÁ·ÒÇÁÆ® ¾÷µ¥ÀÌÆ®
-            JToken positiveNode = workflow["4"];
-            if (positiveNode != null && positiveNode["inputs"] != null)
+            // ë…¸ë“œ 13 (easy string)ì˜ widgets_values ë°°ì—´ì˜ ì²« ë²ˆì§¸ ìš”ì†Œê°€ ì‹¤ì œ í”„ë¡¬í”„íŠ¸ í…ìŠ¤íŠ¸
+            JToken targetPromptNode = workflow["13"];
+            if (targetPromptNode != null && targetPromptNode["widgets_values"] != null && targetPromptNode["widgets_values"].HasValues)
             {
-                string currentText = positiveNode["inputs"]["text"]?.ToString() ?? "";
-
-                // ±âÁ¸ ÇÁ·ÒÇÁÆ®¿¡¼­ »ç¿ëÀÚ ÀÔ·Â ÇÁ·ÒÇÁÆ®¸¦ ¾Õ¿¡ Ãß°¡
-                if (!string.IsNullOrEmpty(currentText))
-                {
-                    positiveNode["inputs"]["text"] = currentText + ", " + prompt;
-                }
-                else
-                {
-                    positiveNode["inputs"]["text"] = prompt;
-                }
+                // ì‹¤ì œ ë¬¸ìì—´ ê°’ì€ 'widgets_values' ë°°ì—´ì˜ ì²« ë²ˆì§¸ ìš”ì†Œì— ìˆìŠµë‹ˆë‹¤.
+                // ì—¬ê¸°ì„œëŠ” ìƒˆ í”„ë¡¬í”„íŠ¸ë¡œ ê¸°ì¡´ ë‚´ìš©ì„ ë®ì–´ì”ë‹ˆë‹¤.
+                targetPromptNode["widgets_values"][0] = prompt;
 
                 if (enableDebugLogs)
-                    Debug.Log($"?? ±àÁ¤ ÇÁ·ÒÇÁÆ® ¾÷µ¥ÀÌÆ®: {positiveNode["inputs"]["text"]}");
+                    Debug.Log($"ğŸ“ ê¸ì • í”„ë¡¬í”„íŠ¸ ì—…ë°ì´íŠ¸ (ë…¸ë“œ 13): {prompt}");
             }
             else
             {
-                Debug.LogWarning("?? ±àÁ¤ ÇÁ·ÒÇÁÆ® ³ëµå(4)¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+                Debug.LogWarning("âš ï¸ í”„ë¡¬í”„íŠ¸ íƒ€ê²Ÿ ë…¸ë“œ(13)ë¥¼ ì°¾ì„ ìˆ˜ ì—†ê±°ë‚˜ í˜•ì‹ì´ ì˜¬ë°”ë¥´ì§€ ì•ŠìŠµë‹ˆë‹¤.");
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"? ÇÁ·ÒÇÁÆ® ¾÷µ¥ÀÌÆ® ½ÇÆĞ: {e.Message}");
+            Debug.LogError($"âŒ í”„ë¡¬í”„íŠ¸ ì—…ë°ì´íŠ¸ ì‹¤íŒ¨: {e.Message}");
         }
     }
 
     /// <summary>
-    /// ·£´ı ½Ãµå ¼³Á¤ (³ëµå 3 - KSampler)
+    /// ëœë¤ ì‹œë“œ ì„¤ì • (ë…¸ë“œ 3 - KSampler)
     /// </summary>
     private void UpdateSeedInWorkflow(JObject workflow)
     {
@@ -183,109 +175,102 @@ public class ComfyUIClient : MonoBehaviour
             JToken samplerNode = workflow["3"];
             if (samplerNode != null && samplerNode["inputs"] != null)
             {
-                // »õ·Î¿î ·£´ı ½Ãµå »ı¼º
+                // ìƒˆë¡œìš´ ëœë¤ ì‹œë“œ ìƒì„±
                 long newSeed = UnityEngine.Random.Range(1, 999999999);
                 samplerNode["inputs"]["seed"] = newSeed;
 
                 if (enableDebugLogs)
-                    Debug.Log($"?? »õ·Î¿î ½Ãµå ¼³Á¤: {newSeed}");
+                    Debug.Log($"ğŸ² ìƒˆë¡œìš´ ì‹œë“œ ì„¤ì •: {newSeed}");
+            }
+            else
+            {
+                Debug.LogWarning("âš ï¸ KSampler ë…¸ë“œ(3)ë¥¼ ì°¾ì„ ìˆ˜ ì—†ê±°ë‚˜ í˜•ì‹ì´ ì˜¬ë°”ë¥´ì§€ ì•ŠìŠµë‹ˆë‹¤.");
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"? ½Ãµå ¾÷µ¥ÀÌÆ® ½ÇÆĞ: {e.Message}");
+            Debug.LogError($"âŒ ì‹œë“œ ì—…ë°ì´íŠ¸ ì‹¤íŒ¨: {e.Message}");
         }
     }
 
     /// <summary>
-    /// ¿öÅ©ÇÃ·Î¿ì À¯È¿¼º °Ë»ç
+    /// ì›Œí¬í”Œë¡œìš° ìœ íš¨ì„± ê²€ì‚¬ (CatAlchemist.jsonì— ë§ê²Œ ë…¸ë“œ ID ì—…ë°ì´íŠ¸)
     /// </summary>
     private void ValidateWorkflow(JObject workflow)
     {
         if (!enableDebugLogs) return;
 
-        Debug.Log("?? ¿öÅ©ÇÃ·Î¿ì À¯È¿¼º °Ë»ç...");
+        Debug.Log("ğŸ” ì›Œí¬í”Œë¡œìš° ìœ íš¨ì„± ê²€ì‚¬...");
 
-        // ÇÊ¼ö ³ëµåµé È®ÀÎ (³ëµå 8 Ãß°¡)
-        string[] requiredNodes = { "1", "2", "3", "4", "5", "6", "7", "8" };
+        // CatAlchemist.jsonì— ì¡´ì¬í•˜ëŠ” í•„ìˆ˜ ë…¸ë“œë“¤ í™•ì¸
+        string[] requiredNodes = { "3", "4", "5", "6", "7", "8", "10", "11", "12", "13" };
 
         foreach (string nodeId in requiredNodes)
         {
             if (workflow[nodeId] == null)
             {
-                Debug.LogWarning($"?? ÇÊ¼ö ³ëµå {nodeId}°¡ ¾ø½À´Ï´Ù");
+                Debug.LogWarning($"âš ï¸ í•„ìˆ˜ ë…¸ë“œ {nodeId}ê°€ ì—†ìŠµë‹ˆë‹¤.");
             }
             else
             {
                 string nodeType = workflow[nodeId]["class_type"]?.ToString() ?? "Unknown";
-                Debug.Log($"? ³ëµå {nodeId}: {nodeType}");
+                Debug.Log($"âœ… ë…¸ë“œ {nodeId}: {nodeType}");
             }
         }
 
-        // ¿¬°á »óÅÂ °£´Ü Ã¼Å©
+        // ì—°ê²° ìƒíƒœ ê°„ë‹¨ ì²´í¬
         CheckBasicConnections(workflow);
     }
 
     /// <summary>
-    /// ±âº» ¿¬°á »óÅÂ È®ÀÎ
+    /// ê¸°ë³¸ ì—°ê²° ìƒíƒœ í™•ì¸
     /// </summary>
     private void CheckBasicConnections(JObject workflow)
     {
         try
         {
-            // KSampler(3) ¿¬°á È®ÀÎ
+            // KSampler(3) ì—°ê²° í™•ì¸
             JToken samplerNode = workflow["3"];
             if (samplerNode?["inputs"] != null)
             {
                 var inputs = samplerNode["inputs"];
 
-                // ¸ğµ¨ ¿¬°á È®ÀÎ
-                if (inputs["model"] != null)
-                    Debug.Log($"KSampler ¸ğµ¨ ¿¬°á: {inputs["model"]}");
-
-                // ÇÁ·ÒÇÁÆ® ¿¬°á È®ÀÎ
-                if (inputs["positive"] != null)
-                    Debug.Log($"KSampler ±àÁ¤ ÇÁ·ÒÇÁÆ® ¿¬°á: {inputs["positive"]}");
-                if (inputs["negative"] != null)
-                    Debug.Log($"KSampler ºÎÁ¤ ÇÁ·ÒÇÁÆ® ¿¬°á: {inputs["negative"]}");
-
-                // ÀáÀç ÀÌ¹ÌÁö ¿¬°á È®ÀÎ (³ëµå 8)
-                if (inputs["latent_image"] != null)
-                    Debug.Log($"KSampler ÀáÀç ÀÌ¹ÌÁö ¿¬°á: {inputs["latent_image"]}");
+                if (inputs["model"] != null) Debug.Log($"KSampler ëª¨ë¸ ì—°ê²°: {inputs["model"]}");
+                if (inputs["positive"] != null) Debug.Log($"KSampler ê¸ì • í”„ë¡¬í”„íŠ¸ ì—°ê²°: {inputs["positive"]}");
+                if (inputs["negative"] != null) Debug.Log($"KSampler ë¶€ì • í”„ë¡¬í”„íŠ¸ ì—°ê²°: {inputs["negative"]}");
+                if (inputs["latent_image"] != null) Debug.Log($"KSampler ì ì¬ ì´ë¯¸ì§€ ì—°ê²°: {inputs["latent_image"]}");
             }
 
-            // VAEDecode(6) ¿¬°á È®ÀÎ
-            JToken vaeNode = workflow["6"];
-            if (vaeNode?["inputs"] != null)
+            // VAEDecode(8) ì—°ê²° í™•ì¸
+            JToken vaeDecodeNode = workflow["8"];
+            if (vaeDecodeNode?["inputs"] != null)
             {
-                var inputs = vaeNode["inputs"];
-                if (inputs["samples"] != null)
-                    Debug.Log($"AEDecode »ùÇÃ ¿¬°á: {inputs["samples"]}");
-                if (inputs["vae"] != null)
-                    Debug.Log($"VAEDecode VAE ¿¬°á: {inputs["vae"]}");
+                var inputs = vaeDecodeNode["inputs"];
+                if (inputs["samples"] != null) Debug.Log($"VAEDecode ìƒ˜í”Œ ì—°ê²°: {inputs["samples"]}");
+                if (inputs["vae"] != null) Debug.Log($"VAEDecode VAE ì—°ê²°: {inputs["vae"]}");
             }
 
-            // EmptyLatentImage(8) ¼³Á¤ È®ÀÎ
-            JToken latentNode = workflow["8"];
+            // EmptyLatentImage(5) ì„¤ì • í™•ì¸
+            JToken latentNode = workflow["5"];
             if (latentNode?["inputs"] != null)
             {
                 var inputs = latentNode["inputs"];
-                Debug.Log($"EmptyLatentImage Å©±â: {inputs["width"]}x{inputs["height"]}, ¹èÄ¡: {inputs["batch_size"]}");
+                Debug.Log($"EmptyLatentImage í¬ê¸°: {inputs["width"]}x{inputs["height"]}, ë°°ì¹˜: {inputs["batch_size"]}");
             }
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"°á »óÅÂ È®ÀÎ Áß ¿À·ù: {e.Message}");
+            Debug.LogWarning($"ì—°ê²° ìƒíƒœ í™•ì¸ ì¤‘ ì˜¤ë¥˜: {e.Message}");
         }
     }
 
     /// <summary>
-    /// ÀÌ¹ÌÁö »ı¼º ¿Ï·á±îÁö ´ë±â
+    /// ì´ë¯¸ì§€ ìƒì„± ì™„ë£Œê¹Œì§€ ëŒ€ê¸°
     /// </summary>
     private IEnumerator WaitForCompletion(string promptId, System.Action<string> onComplete)
     {
-        int maxWaitTime = 120; // ÃÖ´ë 2ºĞ ´ë±â
-        int checkInterval = 2;  // 2ÃÊ¸¶´Ù Ã¼Å©
+        int maxWaitTime = 120; // ìµœëŒ€ 2ë¶„ ëŒ€ê¸°
+        int checkInterval = 2;  // 2ì´ˆë§ˆë‹¤ ì²´í¬
         int elapsedTime = 0;
 
         while (elapsedTime < maxWaitTime)
@@ -293,7 +278,7 @@ public class ComfyUIClient : MonoBehaviour
             yield return new WaitForSeconds(checkInterval);
             elapsedTime += checkInterval;
 
-            // ¿Ï·á »óÅÂ È®ÀÎ
+            // ì™„ë£Œ ìƒíƒœ í™•ì¸
             bool isComplete = false;
             string imagePath = null;
 
@@ -304,22 +289,22 @@ public class ComfyUIClient : MonoBehaviour
 
             if (isComplete)
             {
-                if (enableDebugLogs) Debug.Log($"?? ÀÌ¹ÌÁö »ı¼º ¿Ï·á: {imagePath}");
+                if (enableDebugLogs) Debug.Log($"ğŸ‰ ì´ë¯¸ì§€ ìƒì„± ì™„ë£Œ: {imagePath}");
                 onComplete?.Invoke(imagePath);
                 yield break;
             }
 
-            if (enableDebugLogs) Debug.Log($"? ´ë±â Áß... ({elapsedTime}/{maxWaitTime}ÃÊ)");
+            if (enableDebugLogs) Debug.Log($"â³ ëŒ€ê¸° ì¤‘... ({elapsedTime}/{maxWaitTime}ì´ˆ)");
         }
 
-        // Å¸ÀÓ¾Æ¿ô - ÃÖ½Å ÆÄÀÏ ½Ãµµ
+        // íƒ€ì„ì•„ì›ƒ - ìµœì‹  íŒŒì¼ ì‹œë„
         string latestImage = GetLatestImageFile();
-        Debug.LogWarning($"? Å¸ÀÓ¾Æ¿ô - ÃÖ½Å ÆÄÀÏ ¹İÈ¯: {latestImage}");
+        Debug.LogWarning($"â° íƒ€ì„ì•„ì›ƒ - ìµœì‹  íŒŒì¼ ë°˜í™˜: {latestImage}");
         onComplete?.Invoke(latestImage);
     }
 
     /// <summary>
-    /// »ı¼º ¿Ï·á ¿©ºÎ È®ÀÎ
+    /// ìƒì„± ì™„ë£Œ ì—¬ë¶€ í™•ì¸
     /// </summary>
     private IEnumerator CheckIfComplete(string promptId, System.Action<bool, string> onComplete)
     {
@@ -333,7 +318,7 @@ public class ComfyUIClient : MonoBehaviour
                 {
                     JObject history = JObject.Parse(request.downloadHandler.text);
 
-                    // È÷½ºÅä¸®¿¡ ÇØ´ç ID°¡ ÀÖÀ¸¸é ¿Ï·á
+                    // íˆìŠ¤í† ë¦¬ì— í•´ë‹¹ IDê°€ ìˆìœ¼ë©´ ì™„ë£Œ
                     if (history.ContainsKey(promptId))
                     {
                         string imagePath = ExtractImagePath(history[promptId], promptId);
@@ -346,25 +331,27 @@ public class ComfyUIClient : MonoBehaviour
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"È÷½ºÅä¸® ÆÄ½Ì ¿À·ù: {e.Message}");
+                    Debug.LogError($"íˆìŠ¤í† ë¦¬ íŒŒì‹± ì˜¤ë¥˜: {e.Message}");
                     onComplete?.Invoke(false, null);
                 }
             }
             else
             {
+                // ì›¹ ìš”ì²­ ì‹¤íŒ¨ (ì˜ˆ: ì„œë²„ ì—°ê²° ë¶ˆê°€)
+                Debug.LogWarning($"íˆìŠ¤í† ë¦¬ ìš”ì²­ ì‹¤íŒ¨: {request.error}. ì„œë²„ê°€ ì‹¤í–‰ ì¤‘ì¸ì§€ í™•ì¸í•˜ì„¸ìš”.");
                 onComplete?.Invoke(false, null);
             }
         }
     }
 
     /// <summary>
-    /// È÷½ºÅä¸®¿¡¼­ ÀÌ¹ÌÁö °æ·Î ÃßÃâ
+    /// íˆìŠ¤í† ë¦¬ì—ì„œ ì´ë¯¸ì§€ ê²½ë¡œ ì¶”ì¶œ
     /// </summary>
     private string ExtractImagePath(JToken historyEntry, string promptId)
     {
         try
         {
-            // outputs ¼½¼Ç¿¡¼­ ÀÌ¹ÌÁö Ã£±â
+            // outputs ì„¹ì…˜ì—ì„œ ì´ë¯¸ì§€ ì°¾ê¸°
             JToken outputs = historyEntry["outputs"];
             if (outputs != null)
             {
@@ -391,15 +378,15 @@ public class ComfyUIClient : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"ÀÌ¹ÌÁö °æ·Î ÃßÃâ ½ÇÆĞ: {e.Message}");
+            Debug.LogError($"ì´ë¯¸ì§€ ê²½ë¡œ ì¶”ì¶œ ì‹¤íŒ¨: {e.Message}");
         }
 
-        // ÃßÃâ ½ÇÆĞ ½Ã ÃÖ½Å ÆÄÀÏ ¹İÈ¯
+        // ì¶”ì¶œ ì‹¤íŒ¨ ì‹œ ìµœì‹  íŒŒì¼ ë°˜í™˜
         return GetLatestImageFile();
     }
 
     /// <summary>
-    /// Ãâ·Â Æú´õ¿¡¼­ °¡Àå ÃÖ½Å ÀÌ¹ÌÁö ÆÄÀÏ Ã£±â
+    /// ì¶œë ¥ í´ë”ì—ì„œ ê°€ì¥ ìµœì‹  ì´ë¯¸ì§€ íŒŒì¼ ì°¾ê¸°
     /// </summary>
     private string GetLatestImageFile()
     {
@@ -407,7 +394,7 @@ public class ComfyUIClient : MonoBehaviour
         {
             if (!Directory.Exists(outputFolderPath))
             {
-                Debug.LogError($"Ãâ·Â Æú´õ°¡ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù: {outputFolderPath}");
+                Debug.LogError($"ì¶œë ¥ í´ë”ê°€ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤: {outputFolderPath}");
                 return null;
             }
 
@@ -415,7 +402,7 @@ public class ComfyUIClient : MonoBehaviour
 
             if (imageFiles.Length == 0)
             {
-                Debug.LogWarning("Ãâ·Â Æú´õ¿¡ ÀÌ¹ÌÁö ÆÄÀÏÀÌ ¾ø½À´Ï´Ù.");
+                Debug.LogWarning("ì¶œë ¥ í´ë”ì— ì´ë¯¸ì§€ íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤.");
                 return null;
             }
 
@@ -436,7 +423,7 @@ public class ComfyUIClient : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"ÃÖ½Å ÀÌ¹ÌÁö ÆÄÀÏ Ã£±â ½ÇÆĞ: {e.Message}");
+            Debug.LogError($"ìµœì‹  ì´ë¯¸ì§€ íŒŒì¼ ì°¾ê¸° ì‹¤íŒ¨: {e.Message}");
             return null;
         }
     }
